@@ -93,10 +93,10 @@ button:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
 .essential-bar .stop{--sh:#f0b3aa;background:#ffe1da;color:#9f291d}
 .essential-bar .pain{--sh:#f0cf8f;background:#fff0cf;color:#8e451e}
 .essential-bar button.selected{border:5px solid var(--green);transform:scale(1.04)}
-.bottom-nav{position:fixed;z-index:5;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,720px);height:88px;padding:8px 8px max(8px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:#fff;border-top:1px solid var(--line);box-shadow:0 -8px 24px rgba(52,71,62,.08)}
+.bottom-nav{position:fixed;z-index:5;bottom:0;left:50%;transform:translateX(-50%);width:min(100%,720px);height:88px;padding:8px 8px max(8px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:#fff;border-top:1px solid var(--line);box-shadow:0 -8px 24px rgba(52,71,62,.08)}
 .bottom-nav button{border:0;background:transparent;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--ink-soft)}
 .bottom-nav button span{font-size:23px}
-.bottom-nav button b{font-size:11px;letter-spacing:-.4px}
+.bottom-nav button b{font-size:10px;letter-spacing:-.4px}
 .bottom-nav button:active{transform:scale(.92)}
 .bottom-nav button.active{background:var(--green-soft);color:var(--green-deep)}
 .bottom-nav button.active span{transform:scale(1.08)}
@@ -159,6 +159,13 @@ button:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
 /* ---------- 데이터 ---------- */
 // word = 문장 만들기에서 쓰는 낱말 단위 (voice-word/<id>.mp3 와 짝)
 const categories = [
+  { id:"want", label:"원해요", icon:"⭐", prompt:"갖고 싶은 것, 하고 싶은 것을 골라요", cards:[
+    { id:"cider", label:"사이다 주세요", short:"사이다", word:"사이다", src:"aac3-cider.png", color:"mint" },
+    { id:"bath", label:"목욕하고 싶어요", short:"목욕", word:"목욕", src:"aac3-bath.png", color:"blue" },
+    { id:"playground", label:"놀이터 가고 싶어요", short:"놀이터", word:"놀이터", src:"aac3-playground.png", color:"yellow" },
+    { id:"rice", label:"밥 주세요", short:"밥", word:"밥", src:"aac3-rice.png", color:"rose" },
+    { id:"youtube", label:"유튜브 틀어주세요", short:"유튜브", word:"유튜브", src:"aac3-youtube.png", color:"peach" },
+  ]},
   { id:"daily", label:"꼭 필요한 말", icon:"💬", prompt:"지금 필요한 말을 골라요", cards:[
     { id:"no", label:"싫어요", short:"싫어요", word:"싫어요", action:0, color:"rose" },
     { id:"help", label:"도와주세요", short:"도와주세요", word:"도와주세요", action:2, color:"mint" },
@@ -170,15 +177,12 @@ const categories = [
     { id:"water", label:"물 주세요", short:"물", word:"물", image:6, color:"blue" },
     { id:"milk", label:"우유 주세요", short:"우유", word:"우유", image:7, color:"blue" },
     { id:"gummy", label:"젤리 주세요", short:"젤리", word:"젤리", src:"aac-gummy-bears-v3.png", color:"yellow" },
-    { id:"rice", label:"밥 주세요", short:"밥", word:"밥", src:"aac-rice-bowl-v3.png", color:"rose" },
-    { id:"cider", label:"사이다 주세요", short:"사이다", word:"사이다", src:"aac-cider.png", color:"mint" },
   ]},
   { id:"play", label:"하고 싶어요", icon:"🧸", prompt:"지금 하고 싶은 것을 골라요", cards:[
     { id:"bear", label:"곰 인형 주세요", short:"곰 인형", word:"곰 인형", image:10, color:"yellow" },
     { id:"book", label:"책 주세요", short:"책", word:"책", image:11, color:"blue" },
     { id:"outside", label:"나가고 싶어요", short:"나가기", word:"나가고 싶어요", src:"aac-playground.png", color:"mint" },
     { id:"rest", label:"쉬고 싶어요", short:"쉬기", word:"쉬고 싶어요", image:13, color:"peach" },
-    { id:"bath", label:"목욕하고 싶어요", short:"목욕", word:"목욕", src:"aac-bath.png", color:"blue" },
   ]},
   { id:"feeling", label:"내 마음", icon:"❤️", prompt:"지금 내 마음을 골라요", cards:[
     { id:"yes", label:"좋아요", short:"좋아요", word:"좋아요", image:4, color:"mint" },
@@ -198,6 +202,7 @@ const funcWords = [
   { id:"fn-please", word:"주세요", icon:"🙏" },
   { id:"fn-go", word:"가고 싶어요", icon:"🚶" },
   { id:"fn-do", word:"하고 싶어요", icon:"✋" },
+  { id:"fn-turnon", word:"틀어주세요", icon:"📺" },
 ];
 
 /* ---------- 녹음 음성 저장 (IndexedDB, 이 기기 전용) ---------- */
@@ -336,7 +341,7 @@ function pictogramHTML(card){
 }
 
 /* ---------- 상태 ---------- */
-const state = { activeId:"daily", selected:null, guide:false, recording:false, hasRecording:false, notice:"",
+const state = { activeId:"want", selected:null, guide:false, recording:false, hasRecording:false, notice:"",
                 sentenceMode:false, sentence:[], speaking:false, recordedCount:0, locked:false, manual:false };
 let recorder = null;
 let chunks = [];
@@ -484,7 +489,7 @@ function render(){
 
           <div class="m-step"><span class="m-num">2</span><div>
             <b>주제를 바꿔요</b>
-            <p>맨 아래 <b>꼭 필요한 말 · 먹고 · 하고 · 내 마음</b> 버튼으로 그림을 바꿔요. 화면 아래 <b>그만해요 · 아파요</b> 는 항상 보여요.</p></div></div>
+            <p>맨 아래 <b>원해요 · 꼭 필요한 말 · 먹고 · 하고 · 내 마음</b> 버튼으로 그림을 바꿔요. 화면 아래 <b>그만해요 · 아파요</b> 는 항상 보여요.</p></div></div>
 
           <div class="m-step"><span class="m-num">3</span><div>
             <b>우리 목소리를 넣어요 (선택)</b>
