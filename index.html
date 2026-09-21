@@ -33,7 +33,7 @@ body{margin:0;min-height:100dvh;background:radial-gradient(125% 90% at 50% 0,#ee
 button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
   transition:transform .13s var(--ease),box-shadow .13s var(--ease),background .15s ease,border-color .15s ease,color .15s ease}
 button:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
-.phone-shell{width:min(100%,720px);min-height:100dvh;margin:auto;background:var(--paper);box-shadow:0 0 60px rgba(31,86,64,.16);padding-bottom:174px}
+.phone-shell{width:min(100%,720px);min-height:100dvh;margin:auto;background:var(--paper);box-shadow:0 0 60px rgba(31,86,64,.16);padding-bottom:104px}
 .simple-header{height:72px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
 .logo{font-size:26px;font-weight:950;letter-spacing:-1.6px;color:var(--green)}
 .adult-button{border:2px solid #e4ddcd;background:#fff;border-radius:999px;padding:10px 15px;font-size:12.5px;font-weight:800;color:var(--ink-soft);box-shadow:0 3px 0 #ece4d2}
@@ -193,10 +193,7 @@ const categories = [
   ]},
 ];
 
-const fixedCards = [
-  { id:"stop", label:"그만해요", short:"그만해요", word:"그만해요", action:1, color:"stop" },
-  { id:"pain", label:"아파요", short:"아파요", word:"아파요", action:4, color:"pain" },
-];
+const fixedCards = []; // 정현우 AAC: 하단 고정 바(그만해요·아파요) 제거 (2026-09-21)
 
 // 연결말: 낱말을 문장으로 이어주는 칩 (문장 모드에서만 보임)
 const funcWords = [
@@ -490,7 +487,7 @@ function render(){
 
           <div class="m-step"><span class="m-num">2</span><div>
             <b>주제를 바꿔요</b>
-            <p>맨 아래 <b>원해요 · 꼭 필요한 말 · 먹고 · 하고 · 내 마음</b> 버튼으로 그림을 바꿔요. 화면 아래 <b>그만해요 · 아파요</b> 는 항상 보여요.</p></div></div>
+            <p>맨 아래 <b>원해요 · 꼭 필요한 말 · 먹고 · 하고 · 내 마음</b> 버튼으로 그림을 바꿔요.</p></div></div>
 
           <div class="m-step"><span class="m-num">3</span><div>
             <b>우리 목소리를 넣어요 (선택)</b>
@@ -547,7 +544,7 @@ function render(){
         <div class="section-title"><span>${active.icon}</span><div><h1>${active.label}</h1><p>${active.prompt}</p></div></div>
         <div class="picture-grid">${cardsHTML}</div>
       </section>
-      <aside class="essential-bar" aria-label="항상 사용하는 말">${essentialHTML}</aside>
+      ${fixedCards.length ? `<aside class="essential-bar" aria-label="항상 사용하는 말">${essentialHTML}</aside>` : ""}
       <nav class="bottom-nav" aria-label="말하기 주제">${navHTML}</nav>
     </main>${manualHTML}`;
 }
