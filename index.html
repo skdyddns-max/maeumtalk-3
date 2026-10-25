@@ -155,7 +155,7 @@ button:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
 <div id="app"></div>
 <script>
 "use strict";
-const ASSET_VER = "3-2"; // 음성 파일 캐시 무효화용(음성 교체 시 올릴 것)
+const ASSET_VER = "3-3"; // 음성 파일 캐시 무효화용(음성 교체 시 올릴 것)
 
 /* ---------- 데이터 ---------- */
 // word = 문장 만들기에서 쓰는 낱말 단위 (voice-word/<id>.mp3 와 짝)
@@ -166,6 +166,12 @@ const categories = [
     { id:"playground", label:"놀이터 가고 싶어요", short:"놀이터", word:"놀이터", src:"aac3-playground.png", color:"yellow" },
     { id:"rice", label:"밥 주세요", short:"밥", word:"밥", src:"aac3-rice.png", color:"rose" },
     { id:"youtube", label:"유튜브 틀어주세요", short:"유튜브", word:"유튜브", src:"aac3-youtube.png", color:"peach" },
+    { id:"jelly", label:"젤리 주세요", short:"젤리", word:"젤리", src:"aac3-jelly.png", color:"rose" },
+    { id:"snack", label:"과자 주세요", short:"과자", word:"과자", src:"aac3-snack.png", color:"yellow" },
+    { id:"noodle", label:"라면 주세요", short:"라면", word:"라면", src:"aac3-noodle.png", color:"peach" },
+    { id:"egg", label:"계란 주세요", short:"계란", word:"계란", src:"aac3-egg.png", color:"mint" },
+    { id:"kimchi", label:"김치 주세요", short:"김치", word:"김치", src:"aac3-kimchi.png", color:"rose" },
+    { id:"tomato", label:"토마토 주세요", short:"토마토", word:"토마토", src:"aac3-tomato.png", color:"blue" },
   ]},
   { id:"daily", label:"꼭 필요한 말", icon:"💬", prompt:"지금 필요한 말을 골라요", cards:[
     { id:"no", label:"싫어요", short:"싫어요", word:"싫어요", action:0, color:"rose" },
@@ -177,7 +183,6 @@ const categories = [
   { id:"food", label:"먹고 싶어요", icon:"🥄", prompt:"먹거나 마시고 싶은 것을 골라요", cards:[
     { id:"water", label:"물 주세요", short:"물", word:"물", image:6, color:"blue" },
     { id:"milk", label:"우유 주세요", short:"우유", word:"우유", image:7, color:"blue" },
-    { id:"gummy", label:"젤리 주세요", short:"젤리", word:"젤리", src:"aac-gummy-bears-v3.png", color:"yellow" },
   ]},
   { id:"play", label:"하고 싶어요", icon:"🧸", prompt:"지금 하고 싶은 것을 골라요", cards:[
     { id:"bear", label:"곰 인형 주세요", short:"곰 인형", word:"곰 인형", image:10, color:"yellow" },
