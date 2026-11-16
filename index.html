@@ -130,6 +130,14 @@ button:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
 .logo{cursor:default;-webkit-user-select:none;user-select:none;touch-action:manipulation}
 .lock-badge{display:inline-flex;align-items:center;gap:5px;border:2px solid #e4ddcd;background:#fff;border-radius:999px;padding:9px 14px;font-size:12.5px;font-weight:800;color:#9a7b3e;-webkit-user-select:none;user-select:none}
 .bottom-nav button.nav-locked{opacity:.5;pointer-events:none}
+/* 대상(누구에게) 버튼 */
+.voice-bar.has-message strong{white-space:normal;overflow:visible;line-height:1.2;font-size:21px}
+.people-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 14px}
+.person-btn{--sh:#e6dcca;border:2px solid rgba(20,10,0,.07);border-radius:20px;background:#fff;padding:8px 6px 9px;display:flex;flex-direction:column;align-items:center;gap:5px;box-shadow:0 5px 0 var(--sh)}
+.person-btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--sh)}
+.person-btn .pictogram{width:62%;border-radius:999px}
+.person-btn strong{font-size:17px;font-weight:800;letter-spacing:-.5px}
+.person-btn.selected{border:5px solid var(--green);background:var(--green-soft);transform:scale(1.04)}
 /* 문장 만들기 */
 .sentence-bar{margin:16px;padding:12px;border:3px solid #c3cfc7;border-radius:24px;background:#fff;display:flex;flex-direction:column;gap:10px}
 .sentence-bar.has-words{border-color:var(--green);background:#f7fffb}
@@ -155,7 +163,7 @@ button:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
 <div id="app"></div>
 <script>
 "use strict";
-const ASSET_VER = "3-3"; // 음성 파일 캐시 무효화용(음성 교체 시 올릴 것)
+const ASSET_VER = "3-4"; // 음성 파일 캐시 무효화용(음성 교체 시 올릴 것)
 
 /* ---------- 데이터 ---------- */
 // word = 문장 만들기에서 쓰는 낱말 단위 (voice-word/<id>.mp3 와 짝)
@@ -201,6 +209,12 @@ const categories = [
 const fixedCards = []; // 정현우 AAC: 하단 고정 바(그만해요·아파요) 제거 (2026-09-21)
 
 // 연결말: 낱말을 문장으로 이어주는 칩 (문장 모드에서만 보임)
+// 대상(누구에게): 앞장 맨 위 버튼. 먼저 누르고 그림을 누르면 "엄마, 사이다 주세요"가 됨
+const people = [
+  { id:"mom", label:"엄마", short:"엄마", word:"엄마", src:"aac3-mom.png" },
+  { id:"dad", label:"아빠", short:"아빠", word:"아빠", src:"aac3-dad.png" },
+  { id:"teacher", label:"선생님", short:"선생님", word:"선생님", src:"aac3-teacher.png" },
+];
 const funcWords = [
   { id:"fn-please", word:"주세요", icon:"🙏" },
   { id:"fn-go", word:"가고 싶어요", icon:"🚶" },
@@ -345,14 +359,15 @@ function pictogramHTML(card){
 
 /* ---------- 상태 ---------- */
 const state = { activeId:"want", selected:null, guide:false, recording:false, hasRecording:false, notice:"",
-                sentenceMode:false, sentence:[], speaking:false, recordedCount:0, locked:false, manual:false };
+                sentenceMode:false, sentence:[], speaking:false, recordedCount:0, locked:false, manual:false,
+                person:null, selPerson:null };  // person=방금 고른 대상(대기), selPerson=말한 문장에 붙은 대상
 let recorder = null;
 let chunks = [];
 
 function activeCategory(){ return categories.find(c=>c.id===state.activeId); }
 function findCard(id){
   for(const c of categories){ const f = c.cards.find(k=>k.id===id); if(f) return f; }
-  return fixedCards.find(k=>k.id===id) || null;
+  return fixedCards.find(k=>k.id===id) || people.find(k=>k.id===id) || null;
 }
 function setState(patch){ Object.assign(state, patch); render(); }
 
@@ -389,12 +404,36 @@ function choose(card){
     addWord({ id:card.id, word:card.word, card:card });
     return;
   }
-  setState({ selected:card, hasRecording:false });
+  // 대상을 먼저 골랐으면 문장에 붙임: "엄마" (이미 들림) + "사이다 주세요"
+  setState({ selected:card, hasRecording:false, selPerson:state.person, person:null });
   if(navigator.vibrate) navigator.vibrate(45);
   getVoice(card.id).then(v=>{
     if(state.selected && state.selected.id === card.id) setState({ hasRecording:Boolean(v) });
   }).catch(()=>{});
   playCard(card);
+}
+// 음성 한 개를 끝까지 재생(순서대로 이어 말할 때 사용)
+function playToEnd(src){
+  return new Promise((resolve)=>{
+    if(currentAudio){ try{ currentAudio.pause(); }catch{} }
+    const audio = new Audio(src);
+    currentAudio = audio;
+    audio.onended = ()=> resolve();
+    audio.onerror = ()=> resolve();
+    audio.play().catch(()=> resolve());
+  });
+}
+function choosePerson(p){
+  if(state.sentenceMode){ addWord({ id:p.id, word:p.word, card:p }); return; }
+  if(navigator.vibrate) navigator.vibrate(45);
+  const same = state.person && state.person.id === p.id;
+  setState({ person: same ? null : p, selected:null, selPerson:null, hasRecording:false });
+  if(!same) playToEnd(`voice/${p.id}.mp3?v=${ASSET_VER}`);
+}
+async function replaySelected(){
+  if(!state.selected) return;
+  if(state.selPerson){ await playToEnd(`voice/${state.selPerson.id}.mp3?v=${ASSET_VER}`); await new Promise(r=> setTimeout(r, 90)); }
+  playCard(state.selected);
 }
 async function startRecording(){
   if(!state.selected) return;
@@ -488,7 +527,7 @@ function render(){
 
           <div class="m-step"><span class="m-num">1</span><div>
             <b>그림을 눌러 말해요</b>
-            <p>아이가 원하는 그림 카드를 누르면, 그 말을 <b>소리로 대신</b> 해줘요. 위쪽 띠에 방금 말한 게 보여요.</p></div></div>
+            <p>아이가 원하는 그림 카드를 누르면, 그 말을 <b>소리로 대신</b> 해줘요. 위쪽 띠에 방금 말한 게 보여요. <b>엄마·아빠·선생님</b>을 먼저 누르고 그림을 누르면 <b>"엄마, 사이다 주세요"</b>처럼 누구에게 말하는지도 넣을 수 있어요.</p></div></div>
 
           <div class="m-step"><span class="m-num">2</span><div>
             <b>주제를 바꿔요</b>
@@ -516,8 +555,16 @@ function render(){
       </div>
     </div>` : "";
 
-  const voiceBarHTML = sel
-    ? `${pictogramHTML(sel)}<div><small>내가 말했어요</small><strong>${sel.label}</strong></div><button data-role="replay" aria-label="선택한 말 다시 듣기">▶<span>다시 듣기</span></button>`
+  const pend = state.person, withP = state.selPerson;
+  const peopleHTML = (state.activeId === "want") ? `
+    <div class="people-row" aria-label="누구에게 말할까요">${people.map(p=>`
+      <button class="person-btn ${(pend && pend.id===p.id) || (sel && withP && withP.id===p.id) ? "selected" : ""}" data-role="choose-person" data-id="${p.id}" aria-label="${p.label}. 누르고 그림을 고르면 ${p.label}에게 말해요">
+        ${pictogramHTML(p)}<strong>${p.label}</strong>
+      </button>`).join("")}</div>` : "";
+  const voiceBarHTML = (!sel && pend)
+    ? `${pictogramHTML(pend)}<div><small>이제 원하는 그림을 눌러요</small><strong>${pend.label}, …</strong></div>`
+    : sel
+    ? `${pictogramHTML(sel)}<div><small>내가 말했어요</small><strong>${withP ? withP.label + ", " : ""}${sel.label}</strong></div><button data-role="replay" aria-label="선택한 말 다시 듣기">▶<span>다시 듣기</span></button>`
     : `<span class="tap-hand">☝️</span><div><small>그림을 누르면</small><strong>소리로 말해줘요</strong></div>`;
 
   const cardsHTML = active.cards.map(card=>`
@@ -544,9 +591,10 @@ function render(){
           : `<button class="adult-button" data-role="toggle-guide" aria-expanded="${state.guide}">보호자 설정 ${state.guide?"×":"⚙"}</button>`}
       </header>
       ${guideHTML}
-      ${state.sentenceMode ? sentenceBarHTML : `<section class="voice-bar ${sel?"has-message":""}" aria-live="polite">${voiceBarHTML}</section>`}
+      ${state.sentenceMode ? sentenceBarHTML : `<section class="voice-bar ${sel||state.person?"has-message":""}" aria-live="polite">${voiceBarHTML}</section>`}
       <section class="communication-board">
         <div class="section-title"><span>${active.icon}</span><div><h1>${active.label}</h1><p>${active.prompt}</p></div></div>
+        ${peopleHTML}
         <div class="picture-grid">${cardsHTML}</div>
       </section>
       ${fixedCards.length ? `<aside class="essential-bar" aria-label="항상 사용하는 말">${essentialHTML}</aside>` : ""}
@@ -563,11 +611,12 @@ document.getElementById("app").addEventListener("click", (e)=>{
   if(role==="toggle-guide"){ const opening=!state.guide; setState({ guide:opening }); if(opening){ countVoices().then(n=> setState({ recordedCount:n })); } }
   else if(role==="clear-all-recordings"){ clearAllVoices().then(()=> setState({ recordedCount:0, hasRecording:false, notice:"저장된 녹음을 모두 지웠어요. 이제 기본 음성으로 들려요." })); }
   else if(role==="choose"){ const card = findCard(id); if(card) choose(card); }
-  else if(role==="replay"){ if(state.selected) playCard(state.selected); }
+  else if(role==="replay"){ replaySelected(); }
+  else if(role==="choose-person"){ const p = people.find(x=>x.id===id); if(p) choosePerson(p); }
   else if(role==="record-toggle"){ state.recording ? stopRecording() : startRecording(); }
   else if(role==="play-recording"){ if(state.selected) playCard(state.selected); }
   else if(role==="remove-recording"){ removeRecording(); }
-  else if(role==="nav"){ if(state.locked) return; setState({ activeId:id, selected:null }); }
+  else if(role==="nav"){ if(state.locked) return; setState({ activeId:id, selected:null, person:null, selPerson:null }); }
   else if(role==="toggle-lock"){ setState({ locked:true, guide:false, notice:"" }); }
   else if(role==="open-manual"){ setState({ manual:true, guide:false }); }
   else if(role==="close-manual"){ try{ localStorage.setItem("maeumtalk-seen-manual","1"); }catch{} setState({ manual:false }); }

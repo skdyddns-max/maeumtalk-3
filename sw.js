@@ -1,9 +1,9 @@
 // 마음톡 service worker — 오프라인 캐시
 // 앱을 배포할 때마다 VERSION 을 올려야 새 버전이 사용자에게 반영됩니다.
-const VERSION = "maeumtalk3-v5";
-const ASSET_VER = "3-3";
+const VERSION = "maeumtalk3-v6";
+const ASSET_VER = "3-4";
 const VOICE_IDS = [
-  "no","help","toilet","more","water","milk","jelly","snack","noodle","egg","kimchi","tomato","rice","bear",
+  "no","help","toilet","more","water","milk","jelly","snack","noodle","egg","kimchi","tomato","mom","dad","teacher","rice","bear",
   "book","outside","rest","yes","wait","happy","sad",
   "cider","bath","diaper","playground","youtube"
 ];
@@ -29,6 +29,9 @@ const ASSETS = [
   "aac3-egg.png",
   "aac3-kimchi.png",
   "aac3-tomato.png",
+  "aac3-mom.png",
+  "aac3-dad.png",
+  "aac3-teacher.png",
   "aac-diaper.png",
   "og.png",
   ...VOICE_IDS.map((id) => `voice/${id}.mp3?v=${ASSET_VER}`),
