@@ -1,7 +1,7 @@
 // 마음톡 service worker — 오프라인 캐시
 // 앱을 배포할 때마다 VERSION 을 올려야 새 버전이 사용자에게 반영됩니다.
-const VERSION = "maeumtalk3-v7";
-const ASSET_VER = "3-5";
+const VERSION = "maeumtalk3-v8";
+const ASSET_VER = "3-6";
 const VOICE_IDS = [
   "no","help","toilet","more","water","milk","jelly","snack","noodle","egg","kimchi","tomato","mom","dad","teacher","cheese","gim","soup","jokbal","goraebap","oreo","rice","bear",
   "book","outside","rest","yes","wait","happy","sad",
